@@ -83,7 +83,29 @@ Single-page app with all logic in one component:
 
 ## Database Schema
 
-Three tables: `devices` (device_id, location, timestamps), `chat_sessions` (id, device_a, device_b, status), `messages` (chat_session_id, sender_device_id, content). Schema auto-creates on startup via `initDB()`.
+Three tables auto-created on startup via `initDB()`:
+
+```sql
+devices (device_id PRIMARY KEY, latitude, longitude, created_at, last_seen)
+chat_sessions (id PRIMARY KEY, device_a, device_b, status, created_at, updated_at)
+messages (id SERIAL, chat_session_id, sender_device_id, content, created_at)
+```
+
+## Key Implementation Details
+
+**Matching algorithm** (`findMatch()` in main.go):
+- First pass: Find closest user within 1000km radius
+- Fallback: Accept first available user if no nearby match
+- Distance display: "<1 km", "nearby" (<10km), "in your region" (<100km), "in your country"
+
+**Session persistence**:
+- 30-minute sliding window based on `updated_at` timestamp
+- Auto-restore if partner reconnects within window
+- Session expires if partner is offline beyond timeout
+
+**Typing indicators**:
+- Frontend debounces with 2-second timeout before auto `stop_typing`
+- Prevents excessive WebSocket messages
 
 ## Testing
 
