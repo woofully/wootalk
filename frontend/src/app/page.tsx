@@ -144,6 +144,7 @@ export default function Home() {
         case 'restore_session':
           // Restore previous chat session
           setStatus('connected');
+          setDistanceInfo(message.content || '');
           if (message.messages && message.messages.length > 0) {
             const restoredMessages: ChatMessage[] = message.messages.map((msg, index) => ({
               id: `restored-${index}-${msg.timestamp}`,
@@ -153,7 +154,7 @@ export default function Home() {
             }));
             setMessages(restoredMessages);
           }
-          addSystemMessage(message.content || 'Reconnected to previous chat');
+          addSystemMessage('Reconnected to previous chat');
           break;
 
         case 'session_expired':

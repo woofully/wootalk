@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"math"
 	"net/http"
@@ -265,6 +266,14 @@ func (h *Hub) calculateDistance(lat1, lon1, lat2, lon2 float64) float64 {
 	return R * c
 }
 
+// Format distance for display (like Tinder)
+func formatDistance(distance float64) string {
+	if distance < 1 {
+		return "< 1 km away"
+	}
+	return fmt.Sprintf("%.0f km away", distance)
+}
+
 // Find a match for the user
 func (h *Hub) findMatch(user *User) *User {
 	h.mu.Lock()
@@ -426,16 +435,7 @@ func (h *Hub) matchUsers(user1, user2 *User) {
 		user2.Latitude, user2.Longitude,
 	)
 
-	distanceStr := ""
-	if distance < 1 {
-		distanceStr = "< 1 km away"
-	} else if distance < 10 {
-		distanceStr = "nearby"
-	} else if distance < 100 {
-		distanceStr = "in your region"
-	} else {
-		distanceStr = "in your country"
-	}
+	distanceStr := formatDistance(distance)
 
 	msg1 := Message{
 		Type:      TypeMatched,
@@ -530,15 +530,23 @@ func (h *Hub) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 					// Get previous messages
 					messages, _ := h.getSessionMessages(sessionID, user.DeviceID)
 
-					// Send restore session message
+					// Calculate distance for restored session
+					distance := h.calculateDistance(
+						user.Latitude, user.Longitude,
+						partner.Latitude, partner.Longitude,
+					)
+
+					distanceStr := formatDistance(distance)
+
+					// Send restore session message with distance
 					user.sendMessage(Message{
 						Type:      TypeRestoreSession,
-						Content:   "Reconnected to previous chat",
+						Content:   distanceStr,
 						Timestamp: time.Now().UnixMilli(),
 						Messages:  messages,
 					})
 
-					log.Printf("Restored session %s for device %s", sessionID, user.DeviceID)
+					log.Printf("Restored session %s for device %s with distance: %s", sessionID, user.DeviceID, distanceStr)
 					continue
 				} else {
 					// Partner is offline, session expired
