@@ -676,8 +676,14 @@ func main() {
 		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 	})
 
-	log.Println("WebSocket server starting on :8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	// Get port from environment variable (Render uses PORT, default to 8080 for local)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("WebSocket server starting on :%s", port)
+	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
 }

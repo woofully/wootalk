@@ -1,0 +1,19 @@
+services:
+  # Backend Web Service
+  - type: web
+    name: wootalk-backend
+    env: docker
+    region: singapore
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false  # You'll add this manually from Render dashboard
+
+databases:
+  # PostgreSQL Database
+  - name: wootalk-db
+    region: singapore
+    plan: free
+    databaseName: wootalk
+    user: wootalk

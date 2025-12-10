@@ -22,7 +22,16 @@ npm run lint         # Run ESLint
 ```
 
 ### Environment Setup
-Backend requires `DATABASE_URL` in `backend/.env` (copy from `.env.example`).
+Backend requires `DATABASE_URL` in `backend/.env`:
+```
+DATABASE_URL=postgresql://user:pass@host/db?sslmode=require
+```
+
+Frontend requires `NEXT_PUBLIC_WS_URL` in `frontend/.env.local`:
+```
+NEXT_PUBLIC_WS_URL=ws://localhost:8080/ws              # Local development
+NEXT_PUBLIC_WS_URL=wss://wootalk-backend.fly.dev/ws   # Production
+```
 
 ## Architecture
 
@@ -106,6 +115,22 @@ messages (id SERIAL, chat_session_id, sender_device_id, content, created_at)
 **Typing indicators**:
 - Frontend debounces with 2-second timeout before auto `stop_typing`
 - Prevents excessive WebSocket messages
+
+## Deployment
+
+Backend is deployed on Render using Docker (configured in `render.yaml` and root `Dockerfile`):
+- PostgreSQL database on Render (free tier: 90 days)
+- Backend Go service with WebSocket support
+- Frontend on Vercel or Render
+
+See `DEPLOYMENT_RENDER.md` for complete step-by-step deployment instructions.
+
+Quick reference:
+```bash
+# Backend uses PORT environment variable (auto-set by Render)
+# Database URL must be set as environment variable in Render dashboard
+# Frontend needs NEXT_PUBLIC_WS_URL=wss://your-backend.onrender.com/ws
+```
 
 ## Testing
 
